@@ -450,28 +450,30 @@ export default function Search() {
               mapInstanceRef.current?.removeLayer(routePolylineRef.current);
             }
             // Draw new polyline route
-            const polyline = L.polyline(coordinates, {
-              color: '#6366f1',
-              weight: 6,
-              opacity: 0.85,
-              lineCap: 'round',
-              lineJoin: 'round',
-            }).addTo(mapInstanceRef.current);
-            routePolylineRef.current = polyline;
+            if (mapInstanceRef.current) {
+              const polyline = L.polyline(coordinates, {
+                color: '#6366f1',
+                weight: 6,
+                opacity: 0.85,
+                lineCap: 'round',
+                lineJoin: 'round',
+              }).addTo(mapInstanceRef.current);
+              routePolylineRef.current = polyline;
 
-            const distKm = (route.distance / 1000).toFixed(1);
-            const durMin = Math.ceil(route.duration / 60);
-            setRouteInfo({
-              distance: `${distKm} km`,
-              duration: `${durMin} mins`,
-            });
+              const distKm = (route.distance / 1000).toFixed(1);
+              const durMin = Math.ceil(route.duration / 60);
+              setRouteInfo({
+                distance: `${distKm} km`,
+                duration: `${durMin} mins`,
+              });
 
-            // Adjust bounds to encompass both user position and destination
-            const bounds = L.latLngBounds([
-              [startLat, startLng],
-              [destLat, destLng],
-            ]);
-            mapInstanceRef.current.fitBounds(bounds.pad(0.25));
+              // Adjust bounds to encompass both user position and destination
+              const bounds = L.latLngBounds([
+                [startLat, startLng],
+                [destLat, destLng],
+              ]);
+              mapInstanceRef.current.fitBounds(bounds.pad(0.25));
+            }
           }
         }
       } catch (err) {
