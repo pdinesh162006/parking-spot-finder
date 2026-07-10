@@ -1,0 +1,121 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  DRIVER
+  OWNER
+  ADMIN
+}
+
+enum SpotType {
+  STANDARD
+  HANDICAP
+  EV
+  COMPACT
+  LARGE
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  passwordHash String
+  name         String
+  phone        String
+  role         Role           @default(DRIVER)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  lots         ParkingLot[]
+  reservations Reservation[]
+  reviews      Review[]
+  notifications Notification[]
+}
+
+model ParkingLot {
+  id           String         @id @default(uuid())
+  ownerId      String
+  owner        User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name         String
+  description  String
+  address      String
+  city         String
+  state        String
+  zipCode      String
+  latitude     Decimal        @db.Decimal(9, 6)
+  longitude    Decimal        @db.Decimal(9, 6)
+  totalSpots   Int
+  pricePerHour Decimal        @db.Decimal(10, 2)
+  amenities    String[]
+  imageUrls    String[]
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  spots        ParkingSpot[]
+  reservations Reservation[]
+  reviews      Review[]
+}
+
+model ParkingSpot {
+  id           String         @id @default(uuid())
+  lotId        String
+  lot          ParkingLot     @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  spotNumber   String
+  type         SpotType       @default(STANDARD)
+  floor        Int?
+  isActive     Boolean        @default(true)
+  reservations Reservation[]
+
+  @@unique([lotId, spotNumber])
+}
+
+model Reservation {
+  id                    String            @id @default(uuid())
+  userId                String
+  user                  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  spotId                String
+  spot                  ParkingSpot       @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  lotId                 String
+  lot                   ParkingLot        @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  startTime             DateTime
+  endTime               DateTime
+  status                ReservationStatus @default(PENDING)
+  totalPrice            Decimal           @db.Decimal(10, 2)
+  stripePaymentIntentId String?
+  qrCode                String            
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+}
+
+model Review {
+  id        String     @id @default(uuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lotId     String
+  lot       ParkingLot @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?
+  createdAt DateTime   @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
