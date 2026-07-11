@@ -48,20 +48,13 @@ app.use('/api/payments', paymentsRouter);
 app.use('/api/reviews', reviewsRouter);
 app.use('/api/admin', adminRouter);
 
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'ParkEase API is online.' });
+});
+
 // Catch‑all route for SPA (must be after API routes)
 app.get('*', (req, res) => {
   res.sendFile(path.resolve(__dirname, '../../frontend/dist/index.html'));
-});
-
-
-
-
-
-
-
-
-app.get('/', (req, res) => {
-  res.status(200).json({ message: 'ParkEase API is online.' });
 });
 
 // Global Error Handler
