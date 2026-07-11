@@ -19,9 +19,10 @@ interface SocketState {
 }
 
 const SOCKET_URL = 
-  import.meta.env.MODE === 'production'
+  import.meta.env.VITE_SOCKET_URL || 
+  (import.meta.env.MODE === 'production'
     ? window.location.origin
-    : import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+    : 'http://localhost:5000');
 
 export const useSocketStore = create<SocketState>((set, get) => ({
   socket: null,

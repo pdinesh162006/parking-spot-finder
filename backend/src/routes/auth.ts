@@ -148,7 +148,6 @@ router.post('/google-login', validateBody(googleLoginSchema), async (req: Reques
       const saltRounds = 12;
       const secureRandomPassword = Math.random().toString(36) + Math.random().toString(36);
       const passwordHash = await bcrypt.hash(secureRandomPassword, saltRounds);
-
       user = await prisma.user.create({
         data: {
           email,
