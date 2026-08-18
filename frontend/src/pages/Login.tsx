@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useSocketStore } from '../store/socketStore';
@@ -14,9 +14,22 @@ export default function Login() {
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [googleModalOpen, setGoogleModalOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('rememberedEmail');
+      if (saved) {
+        setEmail(saved);
+        setRememberMe(true);
+      }
+    } catch (err) {
+      // ignore localStorage errors
+    }
+  }, []);
 
   const handleGoogleSuccess = async (googleEmail: string, googleName: string) => {
     setGoogleModalOpen(false);
@@ -63,6 +76,13 @@ export default function Login() {
     setLoading(true);
     setError(null);
 
+    // Basic client-side email validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('Please enter a valid email address.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -94,6 +114,18 @@ export default function Login() {
       } else {
         setError(data.message || 'Login failed. Please check your credentials.');
       }
+        // Persist remembered email when login is successful
+        if (res.ok) {
+          try {
+            if (rememberMe) {
+              localStorage.setItem('rememberedEmail', email);
+            } else {
+              localStorage.removeItem('rememberedEmail');
+            }
+          } catch (err) {
+            // ignore localStorage errors
+          }
+        }
     } catch (err) {
       console.error('Login request error:', err);
       setError('A network error occurred. Please try again.');
@@ -153,6 +185,17 @@ export default function Login() {
                 className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
               />
             </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <input
+              id="remember"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="h-4 w-4 text-indigo-600 border-slate-200 rounded"
+            />
+            <label htmlFor="remember" className="text-sm font-semibold text-slate-600">Remember me</label>
           </div>
 
           <button
